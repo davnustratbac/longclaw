@@ -81,19 +81,30 @@ def capture_payment(request):
     'shipping': The shipping rate (in the sites' currency)
     """
     # get request data
-    address = request.data['address']
-    email = request.data.get('email', None)
-    shipping_option = request.data.get('shipping_option', None)
+    # import pdb; pdb.set_trace()
+    different_billing_address = request.data.get('different_billing_address', None)
+    if different_billing_address == "on":
+        dba = True
+    else:
+        # address = request.data['address']
+        address = {}
+        address["shipping_address_line1"] = request.data.get('shipping-line_1')
+        address["shipping_name"] = request.data.get('shipping-name')
+        address["shipping_address_country"] = request.data.get('shipping-country')
+        address["shipping_address_city"] = request.data.get('shipping-city')
+        address["shipping_address_zip"] = request.data.get('shipping-postcode')
+        email = request.data.get('email', None)
+        shipping_option = request.data.get('shipping_option', None)
 
-    # Capture the payment
-    order = create_order(
-        email,
-        request,
-        addresses=address,
-        shipping_option=shipping_option,
-        capture_payment=True
-    )
-    response = Response(data={"order_id": order.id},
-                        status=status.HTTP_201_CREATED)
+        # Capture the payment
+        order = create_order(
+            email,
+            request,
+            addresses=address,
+            shipping_option=shipping_option,
+            capture_payment=True
+        )
+        response = Response(data={"order_id": order.id},
+                            status=status.HTTP_201_CREATED)
 
-    return response
+        return response

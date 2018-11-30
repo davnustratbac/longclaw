@@ -7,6 +7,10 @@ from wagtail.wagtailsnippets.models import register_snippet
 @register_snippet
 @python_2_unicode_compatible
 class Address(models.Model):
+    # we can make a unique billing / shipping address from name + line_1
+    # if we add a address type ( billing or shipping )
+    # better yet store the email ?
+    email = models.CharField(max_length=64, blank=True, null=True)
     name = models.CharField(max_length=64)
     line_1 = models.CharField(max_length=128)
     line_2 = models.CharField(max_length=128, blank=True)

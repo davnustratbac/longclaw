@@ -7,7 +7,7 @@ from longclaw.longclawbasket.utils import get_basket_items, destroy_basket
 from longclaw.longclawshipping.utils import get_shipping_cost
 from longclaw.longclawcheckout.errors import PaymentError
 from longclaw.longclaworders.models import Order, OrderItem
-from longclaw.longclawshipping.models import Address
+from longclaw.longclawshipping.models import Address, Country
 from longclaw.longclawsettings.models import LongclawSettings
 from longclaw.utils import GATEWAY
 
@@ -23,6 +23,8 @@ def create_order(email,
     Create an order from a basket and customer infomation
     """
     basket_items, _ = get_basket_items(request)
+    # if basket_items:
+    import pdb; pdb.set_trace()
     if addresses:
         # Longclaw < 0.2 used 'shipping_name', longclaw > 0.2 uses a consistent
         # prefix (shipping_address_xxxx)
@@ -34,34 +36,44 @@ def create_order(email,
         shipping_country = addresses['shipping_address_country']
         if not shipping_country:
             shipping_country = None
-        shipping_address, _ = Address.objects.get_or_create(name=shipping_name,
-                                                            line_1=addresses[
-                                                                'shipping_address_line1'],
-                                                            city=addresses[
-                                                                'shipping_address_city'],
-                                                            postcode=addresses[
-                                                                'shipping_address_zip'],
-                                                            country=shipping_country)
-        shipping_address.save()
-        try:
-            billing_name = addresses['billing_name']
-        except KeyError:
-            billing_name = addresses['billing_address_name']
-        billing_country = addresses['shipping_address_country']
-        if not billing_country:
-            billing_country = None
-        billing_address, _ = Address.objects.get_or_create(name=billing_name,
-                                                           line_1=addresses[
-                                                               'billing_address_line1'],
-                                                           city=addresses[
-                                                               'billing_address_city'],
-                                                           postcode=addresses[
-                                                               'billing_address_zip'],
-                                                           country=billing_country)
+        shipping_country = Country.objects.get(iso='UK')
+        import pdb; pdb.set_trace()
+        _email = email
+        different_billing_address = request.data.get('different_billing_address', None)
+        if different_billing_address == "on":
+            dba= True
+        else:
+            shipping_address, _ = Address.objects.get_or_create(name=shipping_name,
+                                                                email=_email,
+                                                                line_1=addresses[
+                                                                    'shipping_address_line1'],
+                                                                city=addresses[
+                                                                    'shipping_address_city'],
+                                                                postcode=addresses[
+                                                                    'shipping_address_zip'],
+                                                                country=shipping_country)
+            shipping_address.save()
+            try:
+                billing_name = addresses['billing_name']
+            except KeyError:
+                billing_name = addresses['shipping_name']
+            # billing_country = addresses['shipping_address_country']
+            billing_country = shipping_country
+            if not billing_country:
+                billing_country = None
+            billing_address, _ = Address.objects.get_or_create(name=billing_name,
+                                                               email=_email,
+                                                               line_1=addresses[
+                                                                   'shipping_address_line1'],
+                                                               city=addresses[
+                                                                   'shipping_address_city'],
+                                                               postcode=addresses[
+                                                                   'shipping_address_zip'],
+                                                               country=shipping_country)
         billing_address.save()
-    else:
-        shipping_country = shipping_address.country
-
+    # # else:
+    #     shipping_country = shipping_address.country
+    import pdb; pdb.set_trace()
     ip_address = get_real_ip(request)
     if shipping_country and shipping_option:
         site_settings = LongclawSettings.for_site(request.site)
