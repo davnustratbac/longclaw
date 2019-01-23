@@ -24,7 +24,6 @@ def create_order(email,
     """
     basket_items, _ = get_basket_items(request)
     # if basket_items:
-    import pdb; pdb.set_trace()
     if addresses:
         # Longclaw < 0.2 used 'shipping_name', longclaw > 0.2 uses a consistent
         # prefix (shipping_address_xxxx)
@@ -37,7 +36,6 @@ def create_order(email,
         if not shipping_country:
             shipping_country = None
         shipping_country = Country.objects.get(iso='UK')
-        import pdb; pdb.set_trace()
         _email = email
         different_billing_address = request.data.get('different_billing_address', None)
         if different_billing_address == "on":
@@ -73,7 +71,6 @@ def create_order(email,
         billing_address.save()
     # # else:
     #     shipping_country = shipping_address.country
-    import pdb; pdb.set_trace()
     ip_address = get_real_ip(request)
     if shipping_country and shipping_option:
         site_settings = LongclawSettings.for_site(request.site)
